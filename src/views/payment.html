@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Gateway - Secure AES Encryption</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .payment-container {
+            max-width: 600px;
+        }
+        
+        .security-badge {
+            background: linear-gradient(135deg, #059669, #10B981);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .security-badge h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+        }
+
+        .security-badge p {
+            margin: 0;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        .amount-display {
+            background-color: #F3F4F6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .amount-display h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .encryption-info {
+            background-color: #FEF3C7;
+            border: 1px solid #F59E0B;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .transaction-result {
+            display: none;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .transaction-success {
+            background-color: #D1FAE5;
+            border: 1px solid #10B981;
+            color: #059669;
+        }
+
+        .transaction-error {
+            background-color: #FEE2E2;
+            border: 1px solid #EF4444;
+            color: #DC2626;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-buttons button {
+            flex: 1;
+            background-color: transparent;
+            border: 1px solid #D1D5DB;
+            color: var(--text-color);
+        }
+
+        .nav-buttons button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .nav-buttons button:hover {
+            background-color: var(--primary-hover);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container payment-container">
+        <div class="nav-buttons">
+            <button onclick="showPaymentForm()" id="paymentBtn" class="active">Make Payment</button>
+            <button onclick="showHistory()" id="historyBtn">Transaction History</button>
+            <button onclick="goToDashboard()">Dashboard</button>
+        </div>
+
+        <!-- Payment Form Section -->
+        <div id="paymentSection">
+            <h1>Secure Payment Gateway</h1>
+            
+            <div class="security-badge">
+                <h3>🔒 End-to-End AES-256 Encryption</h3>
+                <p>Your payment data is encrypted with your unique private key</p>
+            </div>
+
+            <div id="alert" class="alert"></div>
+
+            <form id="paymentForm">
+                <div class="amount-display">
+                    <h3 id="amountDisplay">IDR 0</h3>
+                    <p>Enter amount below</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount (IDR)</label>
+                    <input type="number" id="amount" name="amount" required 
+                           placeholder="100000" step="0.01" min="1" max="999999.99"
+                           oninput="updateAmountDisplay()">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description" 
+                           placeholder="Payment for...">
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" name="paymentMethod" required>
+                        <option value="credit_card">Credit Card</option>
+                        <option value="debit_card">Debit Card</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="e_wallet">E-Wallet</option>
+                    </select>
+                </div>
+
+                <h3>Card Information</h3>
+                
+                <div class="form-group">
+                    <label for="cardNumber">Card Number</label>
+                    <input type="text" id="cardNumber" name="cardNumber" required 
+                           placeholder="1234 5678 9012 3456" maxlength="19"
+                           oninput="formatCardNumber(this)">
+                </div>
+
+                <div class="form-group">
+                    <label for="cardHolder">Card Holder Name</label>
+                    <input type="text" id="cardHolder" name="cardHolder" required 
+                           placeholder="JOHN DOE">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expiryMonth">Expiry Month</label>
+                        <select id="expiryMonth" name="expiryMonth" required>
+                            <option value="">MM</option>
+                            <option value="01">01</option>
+                            <option value="02">02</option>
+                            <option value="03">03</option>
+                            <option value="04">04</option>
+                            <option value="05">05</option>
+                            <option value="06">06</option>
+                            <option value="07">07</option>
+                            <option value="08">08</option>
+                            <option value="09">09</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiryYear">Expiry Year</label>
+                        <select id="expiryYear" name="expiryYear" required>
+                            <option value="">YYYY</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" name="cvv" required 
+                           placeholder="123" maxlength="4" pattern="[0-9]{3,4}">
+                </div>
+
+                <div class="encryption-info">
+                    <strong>🔐 Security Information:</strong><br>
+                    All payment data will be encrypted using AES-256-CBC algorithm with your unique private key derived from your user identifier. No sensitive data is stored in plain text.
+                </div>
+
+                <button type="submit" id="submitBtn">🔒 Process Secure Payment</button>
+            </form>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Processing your payment securely...</p>
+                <p><small>Encrypting data with AES-256</small></p>
+            </div>
+
+            <div id="transactionResult" class="transaction-result">
+                <h3 id="resultTitle"></h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+
+        <!-- Transaction History Section -->
+        <div id="historySection" style="display: none;">
+            <h1>Transaction History</h1>
+            <div id="historyLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading transaction history...</p>
+            </div>
+            <div id="historyContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+        });
+
+        function updateAmountDisplay() {
+            const amount = document.getElementById('amount').value;
+            const display = document.getElementById('amountDisplay');
+            if (amount) {
+                display.textContent = `IDR ${parseFloat(amount).toLocaleString('id-ID')}`;
+            } else {
+                display.textContent = 'IDR 0';
+            }
+        }
+
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+            input.value = value;
+        }
+
+        function showPaymentForm() {
+            document.getElementById('paymentSection').style.display = 'block';
+            document.getElementById('historySection').style.display = 'none';
+            document.getElementById('paymentBtn').classList.add('active');
+            document.getElementById('historyBtn').classList.remove('active');
+        }
+
+        function showHistory() {
+            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('historySection').style.display = 'block';
+            document.getElementById('paymentBtn').classList.remove('active');
+            document.getElementById('historyBtn').classList.add('active');
+            loadTransactionHistory();
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+
+        // Payment form submission
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const alert = document.getElementById('alert');
+            const loading = document.getElementById('loading');
+            const form = document.getElementById('paymentForm');
+            const result = document.getElementById('transactionResult');
+
+            // Collect form data
+            const formData = {
+                amount: parseFloat(document.getElementById('amount').value),
+                currency: 'IDR',
+                paymentMethod: document.getElementById('paymentMethod').value,
+                description: document.getElementById('description').value,
+                paymentData: {
+                    cardNumber: document.getElementById('cardNumber').value.replace(/\s/g, ''),
+                    cardHolder: document.getElementById('cardHolder').value,
+                    expiryMonth: document.getElementById('expiryMonth').value,
+                    expiryYear: document.getElementById('expiryYear').value,
+                    cvv: document.getElementById('cvv').value
+                }
+            };
+
+            // Show loading
+            form.style.display = 'none';
+            loading.style.display = 'block';
+            alert.style.display = 'none';
+            result.style.display = 'none';
+
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Step 1: Create transaction
+                const createResponse = await fetch('/payment/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const createData = await createResponse.json();
+
+                if (!createResponse.ok) {
+                    throw new Error(createData.message || 'Failed to create transaction');
+                }
+
+                // Step 2: Process payment
+                const processResponse = await fetch(`/payment/process/${createData.data.transactionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const processData = await processResponse.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                result.style.display = 'block';
+
+                if (processData.success) {
+                    // Success
+                    result.className = 'transaction-result transaction-success';
+                    document.getElementById('resultTitle').textContent = '✅ Payment Successful!';
+                    document.getElementById('resultContent').innerHTML = `
+                        <p><strong>Transaction Reference:</strong> ${processData.data.transactionReference}</p>
+                        <p><strong>Amount:</strong> ${processData.data.currency} ${processData.data.amount.toLocaleString('id-ID')}</p>
+                        <p><strong>Status:</strong> ${processData.data.status.toUpperCase()}</p>
+                        <p><strong>Processed At:</strong> ${new Date(processData.data.processedAt).toLocaleString()}</p>
+                        <p><small>✅ Data encrypted with AES-256-CBC using your private key</small></p>
+                        <button onclick="resetForm()" style="margin-top: 1rem;">Make Another Payment</button>
+                    `;
+                } else {
+                    // Failed
+                    result.className = 'transaction-result transaction-error';
+                    document.getElementById('resultTitle').textContent = '❌ Payment Failed';
+                    document.getElementById('resultContent').innerHTML = `
+                        <p><strong>Reason:</strong> ${processData.data?.failureReason || processData.message}</p>
+                        <p><strong>Transaction Reference:</strong> ${processData.data?.transactionReference || 'N/A'}</p>
+                        <p><small>🔒 Your data was encrypted and securely processed</small></p>
+                        <button onclick="resetForm()" style="margin-top: 1rem;">Try Again</button>
+                    `;
+                }
+
+            } catch (error) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.className = 'transaction-result transaction-error';
+                document.getElementById('resultTitle').textContent = '❌ Error';
+                document.getElementById('resultContent').innerHTML = `
+                    <p>${error.message}</p>
+                    <button onclick="resetForm()" style="margin-top: 1rem;">Try Again</button>
+                `;
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('paymentForm').reset();
+            document.getElementById('paymentForm').style.display = 'block';
+            document.getElementById('transactionResult').style.display = 'none';
+            updateAmountDisplay();
+        }
+
+        async function loadTransactionHistory() {
+            const historyLoading = document.getElementById('historyLoading');
+            const historyContent = document.getElementById('historyContent');
+            
+            historyLoading.style.display = 'block';
+            historyContent.innerHTML = '';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/payment/history', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                historyLoading.style.display = 'none';
+
+                if (data.success && data.data.transactions.length > 0) {
+                    let html = '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">';
+                    html += '<tr style="background-color: var(--background-color);"><th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Date</th><th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Reference</th><th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Amount</th><th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Method</th><th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Status</th></tr>';
+                    
+                    data.data.transactions.forEach(tx => {
+                        const statusColor = tx.status === 'success' ? '#059669' : 
+                                          tx.status === 'failed' ? '#DC2626' : 
+                                          tx.status === 'pending' ? '#F59E0B' : '#6B7280';
+                        
+                        html += `<tr>
+                            <td style="padding: 0.75rem; border: 1px solid #ddd;">${new Date(tx.createdAt).toLocaleDateString()}</td>
+                            <td style="padding: 0.75rem; border: 1px solid #ddd; font-family: monospace; font-size: 0.875rem;">${tx.transactionReference}</td>
+                            <td style="padding: 0.75rem; border: 1px solid #ddd;">${tx.currency} ${tx.amount.toLocaleString('id-ID')}</td>
+                            <td style="padding: 0.75rem; border: 1px solid #ddd;">${tx.paymentMethod.replace('_', ' ').toUpperCase()}</td>
+                            <td style="padding: 0.75rem; border: 1px solid #ddd; color: ${statusColor}; font-weight: 500;">${tx.status.toUpperCase()}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</table></div>';
+                    
+                    if (data.data.pagination.totalPages > 1) {
+                        html += `<p style="margin-top: 1rem; text-align: center; color: #6B7280;">
+                            Page ${data.data.pagination.page} of ${data.data.pagination.totalPages} 
+                            (${data.data.pagination.total} total transactions)
+                        </p>`;
+                    }
+                    
+                    historyContent.innerHTML = html;
+                } else {
+                    historyContent.innerHTML = '<p style="text-align: center; color: #6B7280; margin-top: 2rem;">No transactions found.</p>';
+                }
+
+            } catch (error) {
+                historyLoading.style.display = 'none';
+                historyContent.innerHTML = `<p style="color: #DC2626; text-align: center; margin-top: 2rem;">Error loading transaction history: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

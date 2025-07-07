@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buat User Baru - Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 1.8em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .form-group select {
+            background-color: white;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #5a6fd8;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <a href="/admin.html" class="back-link">← Kembali ke Dashboard Admin</a>
+        
+        <h1 class="form-title">Buat User Baru</h1>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="createUserForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username">Username *</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="firstName">Nama Depan</label>
+                    <input type="text" id="firstName" name="firstName">
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Nama Belakang</label>
+                    <input type="text" id="lastName" name="lastName">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone">Nomor Telepon</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+                <div class="form-group">
+                    <label for="role">Role *</label>
+                    <select id="role" name="role" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="btn-container">
+                <button type="submit" class="btn btn-primary">Buat User</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='/admin.html'">Batal</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Cek apakah user adalah admin
+        function checkAdminAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/admin-login.html';
+                return false;
+            }
+            return true;
+        }
+        
+        // Tampilkan pesan
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Handle form submission
+        document.getElementById('createUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showMessage('Sesi admin telah berakhir. Silakan login kembali.', 'error');
+                setTimeout(() => {
+                    window.location.href = '/admin-login.html';
+                }, 2000);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const userData = {
+                username: formData.get('username'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                phone: formData.get('phone'),
+                role: formData.get('role')
+            };
+            
+            try {
+                const response = await fetch('/admin/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('User berhasil dibuat!', 'success');
+                    document.getElementById('createUserForm').reset();
+                    
+                    // Redirect ke admin dashboard setelah 2 detik
+                    setTimeout(() => {
+                        window.location.href = '/admin.html';
+                    }, 2000);
+                } else {
+                    showMessage(data.message || 'Gagal membuat user', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Terjadi kesalahan saat membuat user', 'error');
+            }
+        });
+        
+        // Check authentication saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminAuth();
+        });
+    </script>
+</body>
+</html>

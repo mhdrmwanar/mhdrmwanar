@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - JWT Payment System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .header-left h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header-left p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .admin-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .stat-icon.users {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .stat-icon.transactions {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+        
+        .stat-icon.success {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+        
+        .stat-icon.amount {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+        }
+        
+        .stat-number {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label {
+            font-size: 1.2em;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .admin-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .admin-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .tab-btn {
+            padding: 15px 30px;
+            border: none;
+            background: transparent;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #666;
+            position: relative;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            padding: 6px 15px;
+            border-radius: 25px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-active {
+            background: linear-gradient(135deg, #d4edda, #a3d977);
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+        
+        .status-success {
+            background: linear-gradient(135deg, #d1ecf1, #a8e6cf);
+            color: #0c5460;
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #fff3cd, #ffeb9c);
+            color: #856404;
+        }
+        
+        .status-failed {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+        
+        .role-badge {
+            padding: 6px 15px;
+            border-radius: 25px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .role-admin {
+            background: linear-gradient(135deg, #e2e3e5, #d1d3d4);
+            color: #383d41;
+        }
+        
+        .role-user {
+            background: linear-gradient(135deg, #bee5eb, #86cfda);
+            color: #0c5460;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85em;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close:hover {
+            color: #dc3545;
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        .filter-select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <div class="header-left">
+                <h1>🚀 Admin Dashboard</h1>
+                <p>Welcome back, <span id="adminName">Admin</span>!</p>
+            </div>
+            <div class="header-right">
+                <div class="admin-avatar">
+                    <span id="adminInitial">A</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon users">👥</div>
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon transactions">💳</div>
+                <div class="stat-number" id="totalTransactions">0</div>
+                <div class="stat-label">Total Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">✅</div>
+                <div class="stat-number" id="successTransactions">0</div>
+                <div class="stat-label">Success Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon amount">💰</div>
+                <div class="stat-number" id="totalAmount">IDR 0</div>
+                <div class="stat-label">Total Amount</div>
+            </div>
+        </div>
+        
+        <div class="admin-section">
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="showTab('users')">👥 Users</button>
+                <button class="tab-btn" onclick="showTab('transactions')">💳 Transactions</button>
+                <button class="tab-btn" onclick="showTab('settings')">⚙️ Settings</button>
+            </div>
+            
+            <div id="users-tab" class="tab-content active">
+                <div class="section-title">👥 Manajemen User</div>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 Search users..." id="userSearch" onkeyup="filterUsers()">
+                    <select class="filter-select" id="roleFilter" onchange="filterUsers()">
+                        <option value="">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </select>
+                    <button class="btn btn-success" onclick="window.location.href='/create-user.html'">➕ Buat User Baru</button>
+                </div>
+                <div id="users-loading" class="loading">Memuat data users...</div>
+                <div id="users-error" class="error-message" style="display:none;"></div>
+                <table class="data-table" id="users-table" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="transactions-tab" class="tab-content">
+                <div class="section-title">💳 Manajemen Transaksi</div>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 Search transactions..." id="transactionSearch" onkeyup="filterTransactions()">
+                    <select class="filter-select" id="statusFilter" onchange="filterTransactions()">
+                        <option value="">All Status</option>
+                        <option value="success">Success</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div id="transactions-loading" class="loading">Memuat data transaksi...</div>
+                <div id="transactions-error" class="error-message" style="display:none;"></div>
+                <table class="data-table" id="transactions-table" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Reference</th>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-tbody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="settings-tab" class="tab-content">
+                <div class="section-title">⚙️ System Settings</div>
+                <div style="padding: 20px; text-align: center;">
+                    <h3>🔧 System Configuration</h3>
+                    <p>Advanced system settings and configuration options will be available here.</p>
+                    <br>
+                    <button class="btn btn-primary" onclick="showSystemInfo()">📊 System Info</button>
+                    <button class="btn btn-warning" onclick="clearCache()">🗑️ Clear Cache</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">⚠️ Confirm Delete</span>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Are you sure you want to delete this item?</p>
+                <p style="color: #dc3545; font-weight: bold;">This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let dashboardData = null;
+        let allUsers = [];
+        let allTransactions = [];
+        let deleteItemId = null;
+        let deleteItemType = null;
+        
+        // Check admin authentication
+        async function checkAdminAuth() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token) {
+                console.log('No token found, redirecting to admin login');
+                window.location.href = '/admin-login.html';
+                return false;
+            }
+            
+            // First check from localStorage
+            if (user && user.role === 'admin') {
+                currentUser = user;
+                document.getElementById('adminName').textContent = currentUser.username;
+                document.getElementById('adminInitial').textContent = currentUser.username.charAt(0).toUpperCase();
+                return true;
+            }
+            
+            try {
+                // Verify with server
+                const response = await fetch('/users/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Authentication failed');
+                }
+                
+                const data = await response.json();
+                currentUser = data;
+                
+                // Check if user is admin
+                if (!currentUser.role || currentUser.role !== 'admin') {
+                    console.log('User is not admin:', currentUser.role);
+                    alert('Akses ditolak. Hanya administrator yang dapat mengakses halaman ini.');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/admin-login.html';
+                    return false;
+                }
+                
+                // Update localStorage with fresh data
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                document.getElementById('adminName').textContent = currentUser.username;
+                document.getElementById('adminInitial').textContent = currentUser.username.charAt(0).toUpperCase();
+                return true;
+                
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/admin-login.html';
+                return false;
+            }
+        }
+        
+        // Load dashboard data
+        async function loadDashboard() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                console.log('No token found in loadDashboard');
+                window.location.href = '/admin-login.html';
+                return;
+            }
+            
+            try {
+                console.log('Loading admin dashboard...');
+                const response = await fetch('/admin/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        console.log('Auth failed in dashboard, redirecting to login');
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = '/admin-login.html';
+                        return;
+                    }
+                    throw new Error(`HTTP ${response.status}: Failed to load dashboard`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'Dashboard API returned error');
+                }
+                
+                dashboardData = data.data;
+                console.log('Dashboard loaded successfully:', dashboardData);
+                
+                // Update statistics
+                document.getElementById('totalUsers').textContent = dashboardData.statistics.users.total;
+                document.getElementById('totalTransactions').textContent = dashboardData.statistics.transactions.total;
+                document.getElementById('successTransactions').textContent = dashboardData.statistics.transactions.success;
+                document.getElementById('totalAmount').textContent = 'IDR ' + new Intl.NumberFormat('id-ID').format(dashboardData.statistics.transactions.totalAmount);
+                
+                // Load users by default
+                loadUsers();
+                
+            } catch (error) {
+                console.error('Dashboard load failed:', error);
+                document.getElementById('users-error').textContent = `Gagal memuat dashboard: ${error.message}`;
+                document.getElementById('users-error').style.display = 'block';
+            }
+        }
+        
+        // Load users
+        async function loadUsers() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch('/admin/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+                
+                const data = await response.json();
+                allUsers = data.data.users;
+                displayUsers(allUsers);
+                
+            } catch (error) {
+                console.error('Users load failed:', error);
+                document.getElementById('users-error').textContent = 'Failed to load users';
+                document.getElementById('users-error').style.display = 'block';
+            } finally {
+                document.getElementById('users-loading').style.display = 'none';
+            }
+        }
+        
+        // Display users in table
+        function displayUsers(users) {
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>#${user.id}</strong></td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                    <td><span class="status-badge status-${user.status}">${user.status}</span></td>
+                    <td>${new Date(user.createdAt).toLocaleDateString('id-ID')}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn-sm btn-primary" onclick="editUser(${user.id})" title="Edit User">✏️</button>
+                            ${user.role !== 'admin' ? `<button class="btn-sm btn-danger" onclick="showDeleteModal(${user.id}, 'user', '${user.username}')" title="Delete User">🗑️</button>` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('users-table').style.display = 'table';
+        }
+        
+        // Filter users
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+            
+            let filteredUsers = allUsers.filter(user => {
+                const matchesSearch = user.username.toLowerCase().includes(searchTerm) || 
+                                    user.email.toLowerCase().includes(searchTerm);
+                const matchesRole = roleFilter === '' || user.role === roleFilter;
+                return matchesSearch && matchesRole;
+            });
+            
+            displayUsers(filteredUsers);
+        }
+        
+        // Load transactions
+        async function loadTransactions() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch('/admin/transactions', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load transactions');
+                }
+                
+                const data = await response.json();
+                allTransactions = data.data.transactions;
+                displayTransactions(allTransactions);
+                
+            } catch (error) {
+                console.error('Transactions load failed:', error);
+                document.getElementById('transactions-error').textContent = 'Failed to load transactions';
+                document.getElementById('transactions-error').style.display = 'block';
+            } finally {
+                document.getElementById('transactions-loading').style.display = 'none';
+            }
+        }
+        
+        // Display transactions in table
+        function displayTransactions(transactions) {
+            const tbody = document.getElementById('transactions-tbody');
+            tbody.innerHTML = '';
+            
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>#${transaction.id}</strong></td>
+                    <td><code>${transaction.transactionReference}</code></td>
+                    <td>${transaction.user.username}</td>
+                    <td><strong>IDR ${new Intl.NumberFormat('id-ID').format(transaction.amount)}</strong></td>
+                    <td><span class="status-badge status-${transaction.status}">${transaction.status}</span></td>
+                    <td>${new Date(transaction.createdAt).toLocaleDateString('id-ID')}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn-sm btn-primary" onclick="viewTransaction(${transaction.id})" title="View Details">👁️</button>
+                            <button class="btn-sm btn-danger" onclick="showDeleteModal(${transaction.id}, 'transaction', '${transaction.transactionReference}')" title="Delete Transaction">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('transactions-table').style.display = 'table';
+        }
+        
+        // Filter transactions
+        function filterTransactions() {
+            const searchTerm = document.getElementById('transactionSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filteredTransactions = allTransactions.filter(transaction => {
+                const matchesSearch = transaction.transactionReference.toLowerCase().includes(searchTerm) || 
+                                    transaction.user.username.toLowerCase().includes(searchTerm);
+                const matchesStatus = statusFilter === '' || transaction.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            displayTransactions(filteredTransactions);
+        }
+        
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            // Load data for the selected tab
+            if (tabName === 'transactions') {
+                loadTransactions();
+            }
+        }
+        
+        // Modal functions
+        function showDeleteModal(itemId, itemType, itemName) {
+            deleteItemId = itemId;
+            deleteItemType = itemType;
+            
+            const modal = document.getElementById('deleteModal');
+            const message = document.getElementById('deleteMessage');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            if (itemType === 'user') {
+                message.textContent = `Are you sure you want to delete user "${itemName}"?`;
+                confirmBtn.onclick = () => deleteUser(itemId);
+            } else if (itemType === 'transaction') {
+                message.textContent = `Are you sure you want to delete transaction "${itemName}"?`;
+                confirmBtn.onclick = () => deleteTransaction(itemId);
+            }
+            
+            modal.style.display = 'block';
+        }
+        
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'none';
+            deleteItemId = null;
+            deleteItemType = null;
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                closeDeleteModal();
+            }
+        }
+        
+        // User management functions
+        function editUser(userId) {
+            // This would open an edit form
+            alert(`Edit user ${userId} feature will be implemented soon!`);
+        }
+        
+        async function deleteUser(userId) {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete user');
+                }
+                
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.textContent = 'User deleted successfully!';
+                document.getElementById('users-tab').insertBefore(successDiv, document.getElementById('users-loading'));
+                
+                // Remove success message after 3 seconds
+                setTimeout(() => {
+                    successDiv.remove();
+                }, 3000);
+                
+                // Reload users
+                closeDeleteModal();
+                loadUsers();
+                loadDashboard(); // Refresh stats
+                
+            } catch (error) {
+                console.error('Delete user failed:', error);
+                alert('Failed to delete user: ' + error.message);
+            }
+        }
+        
+        async function deleteTransaction(transactionId) {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`/admin/transactions/${transactionId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete transaction');
+                }
+                
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.textContent = 'Transaction deleted successfully!';
+                document.getElementById('transactions-tab').insertBefore(successDiv, document.getElementById('transactions-loading'));
+                
+                // Remove success message after 3 seconds
+                setTimeout(() => {
+                    successDiv.remove();
+                }, 3000);
+                
+                // Reload transactions
+                closeDeleteModal();
+                loadTransactions();
+                loadDashboard(); // Refresh stats
+                
+            } catch (error) {
+                console.error('Delete transaction failed:', error);
+                alert('Failed to delete transaction: ' + error.message);
+            }
+        }
+        
+        function viewTransaction(transactionId) {
+            // This would open transaction details
+            alert(`View transaction ${transactionId} details feature will be implemented soon!`);
+        }
+        
+        function showSystemInfo() {
+            alert('System Information:\n\nJWT Payment System v1.0\nNode.js + Express + TypeScript\nSQLite Database\nAES Encryption\n\nDeveloped with ❤️');
+        }
+        
+        function clearCache() {
+            if (confirm('Are you sure you want to clear the cache?')) {
+                localStorage.removeItem('dashboardCache');
+                alert('Cache cleared successfully!');
+                location.reload();
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            console.log('Admin logged out');
+            window.location.href = '/admin-login.html';
+        }
+        
+        // Initialize admin dashboard
+        document.addEventListener('DOMContentLoaded', async function() {
+            const isAdmin = await checkAdminAuth();
+            if (isAdmin) {
+                await loadDashboard();
+            }
+        });
+    </script>
+</body>
+</html>

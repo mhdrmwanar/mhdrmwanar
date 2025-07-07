@@ -1,26 +1,189 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login User - JWT Payment System</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .user-badge {
+            background: #28a745;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .admin-login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        .admin-login-link a {
+            color: #dc3545;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .admin-login-link a:hover {
+            color: #c82333;
+            text-decoration: underline;
+        }
+        
+        .user-welcome {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .user-welcome h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-welcome p {
+            color: #666;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Login</h1>
-        <form id="loginForm" action="/api/auth/login" method="POST">
+        <div class="user-welcome">
+            <div class="user-badge">👤 USER LOGIN</div>
+            <h1>Selamat Datang Kembali!</h1>
+            <p>Masuk ke akun user Anda</p>
+        </div>
+        
+        <div id="alert" class="alert"></div>
+        <form id="loginForm">
             <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Masukkan username Anda"
+                       autocomplete="username">
             </div>
             <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Masukkan password Anda"
+                       autocomplete="current-password">
             </div>
-            <button type="submit">Login</button>
+            <button type="submit">🔑 Masuk sebagai User</button>
         </form>
-        <p>Don't have an account? <a href="/register.html">Register here</a></p>
+        
+        <p>Belum punya akun? <a href="/register.html">Buat Akun Baru</a></p>
+        
+        <div class="admin-login-link">
+            <p>Administrator? <a href="/admin-login.html">🔐 Login Admin</a></p>
+        </div>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const alert = document.getElementById('alert');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+            
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            // Validasi input
+            if (!formData.username || !formData.password) {
+                showAlert('error', 'Username dan password harus diisi');
+                return;
+            }
+
+            // Tampilkan loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sedang masuk...';
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Cek apakah user adalah admin
+                    if (data.user.role === 'admin') {
+                        showAlert('error', 'Akun admin tidak dapat login di halaman user. Silakan gunakan halaman login admin.');
+                        return;
+                    }
+                    
+                    // Simpan token dan user data
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Tampilkan pesan sukses
+                    showAlert('success', 'Login berhasil! Mengarahkan ke dashboard...');
+                    
+                    // Redirect ke dashboard user
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1500);
+                } else {
+                    showAlert('error', data.message || 'Login gagal. Periksa username dan password Anda.');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('error', 'Terjadi kesalahan saat login. Silakan coba lagi.');
+            } finally {
+                // Reset tombol
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+            }
+        });
+
+        function showAlert(type, message) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            alert.textContent = message;
+            
+            // Auto hide after 5 seconds untuk error
+            if (type === 'error') {
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Cek apakah sudah login dan redirect jika sudah
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (token) {
+                if (user.role === 'admin') {
+                    // Admin sudah login, redirect ke admin dashboard
+                    window.location.href = '/admin.html';
+                } else {
+                    // User biasa sudah login, redirect ke user dashboard
+                    window.location.href = '/dashboard.html';
+                }
+            }
+        });
+
+        // Focus pada input pertama
+        document.getElementById('username').focus();
+    </script>
 </body>
 </html>

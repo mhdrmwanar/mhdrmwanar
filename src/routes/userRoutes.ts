@@ -1,10 +1,8 @@
-import { Router } from 'express';
-import { UserController } from '../controllers/userController';
+import { Application } from 'express';
+import UserController from '../controllers/userController';
+import authMiddleware from '../middleware/authMiddleware';
 
-const router = Router();
-const userController = new UserController();
-
-export function setUserRoutes(app: Router) {
-    app.get('/user/:id', userController.getUser);
-    app.put('/user/:id', userController.updateUser);
+export function setUserRoutes(app: any) {
+    app.get('/users/profile', authMiddleware, UserController.getProfile);
+    app.put('/users/profile', authMiddleware, UserController.updateProfile);
 }
