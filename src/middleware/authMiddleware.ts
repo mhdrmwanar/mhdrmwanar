@@ -2,16 +2,26 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.header('Authorization')?.split(' ')[1];
-
+    const authHeader = req.header('Authorization');
+    console.log('Auth header:', authHeader);
+    
+    const token = authHeader?.split(' ')[1];
+    console.log('Token:', token);
+    
     if (!token) {
-        return res.sendStatus(403); // Forbidden
+        console.log('No token provided');
+        return res.status(401).json({ error: 'No token provided' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
+    const secret = process.env.JWT_SECRET as string;
+    console.log('Middleware JWT_SECRET:', secret);
+
+    jwt.verify(token, secret, (err: any, user: any) => {
         if (err) {
-            return res.sendStatus(403); // Forbidden
+            console.log('Token verification error:', err);
+            return res.status(403).json({ error: 'Invalid token' });
         }
+        console.log('Token verified, user:', user);
         req.user = user;
         next();
     });

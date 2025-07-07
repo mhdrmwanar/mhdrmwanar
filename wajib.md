@@ -132,13 +132,13 @@ SELECT * FROM users;
 
 ### ✅ Routes
 - [ ] **Auth Routes** (`src/routes/authRoutes.ts`)
-  - [ ] POST `/register`
-  - [ ] POST `/login`
-  - [ ] POST `/logout`
+  - [ ] POST `/auth/register`
+  - [ ] POST `/auth/login`
+  - [ ] POST `/auth/logout`
 
 - [ ] **User Routes** (`src/routes/userRoutes.ts`)
-  - [ ] GET `/profile` (protected)
-  - [ ] PUT `/profile` (protected)
+  - [ ] GET `/users/profile` (protected)
+  - [ ] PUT `/users/profile` (protected)
 
 ---
 
@@ -168,7 +168,7 @@ SELECT * FROM users;
 ### ✅ API Testing (Gunakan Postman/Thunder Client)
 
 #### Registration Testing
-- [ ] **POST** `http://localhost:3000/register`
+- [ ] **POST** `http://localhost:3000/auth/register`
   ```json
   {
     "username": "testuser",
@@ -193,7 +193,7 @@ SELECT * FROM users;
   - Response: "Username/Email already exists"
 
 #### Login Testing
-- [ ] **POST** `http://localhost:3000/login`
+- [ ] **POST** `http://localhost:3000/auth/login`
   ```json
   {
     "username": "testuser",
@@ -216,15 +216,15 @@ SELECT * FROM users;
   - Response: "Invalid credentials"
 
 #### Protected Route Testing
-- [ ] **GET** `http://localhost:3000/profile`
+- [ ] **GET** `http://localhost:3000/users/profile`
   - **Without Token**
     - Expected: 401 Unauthorized
   
-- [ ] **GET** `http://localhost:3000/profile`
+- [ ] **GET** `http://localhost:3000/users/profile`
   - **With Valid Token** (Header: `Authorization: Bearer <token>`)
     - Expected: 200 OK + user profile data
 
-- [ ] **GET** `http://localhost:3000/profile`
+- [ ] **GET** `http://localhost:3000/users/profile`
   - **With Invalid Token**
     - Expected: 401 Unauthorized + "Invalid token"
 
@@ -397,3 +397,31 @@ Gunakan checkbox di atas untuk track progress. Update status ini setiap kali men
 - Frontend: `[ ]%`
 - Testing: `[ ]%`
 - Production Ready: `[ ]%`
+
+---
+
+## 🚀 QUICK START GUIDE
+
+### 1. Setup Environment
+```bash
+# Di dalam folder jwt-end2
+npm install
+```
+
+### 2. Create .env file
+```env
+JWT_SECRET=mysecretkey_super_secret_change_in_production
+PORT=3000
+NODE_ENV=development
+```
+
+### 3. Run Application
+```bash
+npm run dev
+```
+
+### 4. Test Endpoints
+- Register: `POST http://localhost:3000/auth/register`
+- Login: `POST http://localhost:3000/auth/login`
+- Profile: `GET http://localhost:3000/users/profile` (with JWT token)
+- Frontend: `http://localhost:3000/login.html` dan `http://localhost:3000/register.html`

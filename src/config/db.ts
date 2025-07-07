@@ -1,5 +1,7 @@
 import { DataSource } from "typeorm";
 import { User } from "../models/userModel";
+import { Payment } from "../models/paymentModel";
+import { Transaction } from "../models/transactionModel";
 import path from "path";
 
 // SQLite Database Configuration
@@ -8,7 +10,7 @@ export const AppDataSource = new DataSource({
   database: path.join(__dirname, "../../database.sqlite"),
   synchronize: true, // Auto-create tables based on entities
   logging: false, // Set to true for SQL query logging
-  entities: [User],
+  entities: [User, Payment, Transaction],
   subscribers: [],
   migrations: [],
 });

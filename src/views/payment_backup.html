@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gateway Pembayaran Aman - JWT Payment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 50%, #1a1a2e 100%);
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+            color: #ffffff;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(30, 30, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.3),
+                0 0 60px rgba(120, 119, 198, 0.1);
+            position: relative;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #7877c6, #ff77c6, #77dbff);
+            border-radius: 20px 20px 0 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        .header h1 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #7877c6, #ff77c6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #a0a0b8;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .user-info {
+            background: rgba(45, 45, 68, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+        }
+        
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #ff5252, #e53935);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            background: rgba(45, 45, 68, 0.5);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #a0a0b8;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #7877c6, #8e7cc3);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(120, 119, 198, 0.3);
+        }
+        
+        .tab:hover:not(.active) {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b8b8d1;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(45, 45, 68, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 16px;
+            color: #ffffff;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: #6b6b8a;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #7877c6;
+            background: rgba(45, 45, 68, 1);
+            box-shadow: 0 0 0 3px rgba(120, 119, 198, 0.2);
+        }
+        
+        select {
+            cursor: pointer;
+        }
+        
+        select option {
+            background: #2d2d44;
+            color: #ffffff;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #7877c6, #8e7cc3);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #8e7cc3, #9d8bc7);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(120, 119, 198, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff77c6, #ff8cc8);
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #ff8cc8, #ffa1d1);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .security-info {
+            background: rgba(45, 45, 68, 0.8);
+            border: 1px solid rgba(120, 219, 255, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 4px solid #77dbff;
+        }
+        
+        .security-info h3 {
+            margin: 0 0 15px 0;
+            color: #77dbff;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .security-info ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #b8b8d1;
+        }
+        
+        .security-info li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .payment-history {
+            margin-top: 35px;
+        }
+        
+        .payment-item {
+            background: rgba(45, 45, 68, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #7877c6;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-item:hover {
+            background: rgba(45, 45, 68, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-pending { border-left-color: #ffc107; }
+        .status-processing { border-left-color: #77dbff; }
+        .status-completed { border-left-color: #4ade80; }
+        .status-failed { border-left-color: #ff6b6b; }
+        
+        .message {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .success {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: #4ade80;
+        }
+        
+        .error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #a0a0b8;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #7877c6;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .amount-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: #77dbff;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(45, 45, 68, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(120, 219, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                margin-bottom: 4px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Gateway Pembayaran Aman</h1>
+            <p>Enkripsi End-to-End dengan Algoritma AES & Kunci Privat Per-Pengguna</p>
+        </div>
+
+        <div class="user-info">
+            <span id="userInfo">Memuat informasi pengguna...</span>
+            <button class="logout-btn" onclick="logout()">Keluar</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('payment')">💳 Pembayaran Baru</button>
+            <button class="tab" onclick="showTab('history')">📋 Riwayat Pembayaran</button>
+            <button class="tab" onclick="showTab('security')">🔒 Info Keamanan</button>
+        </div>0% { transform: rotate(360deg); }
+        }
+        <!-- Tab Pembayaran -->
+        <div id="payment" class="tab-content active">
+            <form id="paymentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amount">Jumlah *</label>
+                        <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="100.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="currency">Mata Uang *</label>
+                        <select id="currency" name="currency" required>
+                            <option value="IDR">IDR - Rupiah Indonesia</option>
+                            <option value="USD">USD - Dolar Amerika</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="SGD">SGD - Dolar Singapura</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="paymentMethod">Metode Pembayaran *</label>
+                        <select id="paymentMethod" name="paymentMethod" required>
+                            <option value="credit_card">Kartu Kredit</option>
+                            <option value="debit_card">Kartu Debit</option>
+                            <option value="bank_transfer">Transfer Bank</option>
+                            <option value="digital_wallet">Dompet Digital</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="merchantId">ID Merchant *</label>
+                        <input type="text" id="merchantId" name="merchantId" value="MERCHANT_001" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Deskripsi</label>
+                    <input type="text" id="description" name="description" placeholder="Deskripsi pembayaran">
+                </div>
+
+                <h3 style="color: #b8b8d1; margin: 25px 0 15px 0;">🔐 Informasi Kartu (Terenkripsi)</h3>
+                <div class="form-group">
+                    <label for="cardNumber">Nomor Kartu *</label>
+                    <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cardHolderName">Nama Pemegang Kartu *</label>
+                        <input type="text" id="cardHolderName" name="cardHolderName" placeholder="Nama lengkap" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cvv">CVV *</label>
+                        <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expiryMonth">Bulan Kadaluarsa *</label>
+                        <select id="expiryMonth" name="expiryMonth" required>
+                            <option value="">Pilih Bulan</option>
+                            <option value="1">01 - Januari</option>
+                            <option value="2">02 - Februari</option>
+                            <option value="3">03 - Maret</option>
+                            <option value="4">04 - April</option>
+                            <option value="5">05 - Mei</option>
+                            <option value="6">06 - Juni</option>
+                            <option value="7">07 - Juli</option>
+                            <option value="8">08 - Agustus</option>
+                            <option value="10">10 - Oktober</option>
+                            <option value="11">11 - November</option>
+                            <option value="12">12 - Desember</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiryYear">Tahun Kadaluarsa *</label>
+                        <select id="expiryYear" name="expiryYear" required>
+                            <option value="">Pilih Tahun</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">🔒 Buat Pembayaran Aman</button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Memproses pembayaran aman...</p>
+            </div>
+        </div>
+                            <option value="10">10 - Oktober</option>
+                            <option value="11">11 - November</option>
+                            <option value="12">12 - Desember</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiryYear">Tahun Kadaluarsa *</label>
+                        <select id="expiryYear" name="expiryYear" required>
+                            <option value="">Pilih Tahun</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">🔒 Buat Pembayaran Aman</button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Memproses pembayaran aman...</p>
+            </div>
+        </div>
+
+        <!-- Tab Riwayat -->
+        <div id="history" class="tab-content">
+            <h3 style="color: #b8b8d1; margin-bottom: 20px;">📋 Riwayat Pembayaran</h3>
+            <div id="paymentHistory">
+                <p style="color: #a0a0b8;">Memuat riwayat pembayaran...</p>
+            </div>
+        </div>
+
+        <!-- Tab Keamanan -->
+        <div id="security" class="tab-content">
+            <div class="security-info">
+                <h3>🔒 Fitur Keamanan End-to-End</h3>
+                <ul>
+                    <li><strong>Enkripsi AES:</strong> Semua data pembayaran dienkripsi dengan algoritma AES 256-bit</li>
+                    <li><strong>Kunci Per-Pengguna:</strong> Setiap pengguna memiliki kunci privat unik yang diturunkan dari identifiernya</li>
+                    <li><strong>Key Derivation:</strong> PBKDF2 with 10,000 iterations for secure key generation</li>
+                    <li><strong>Data Integrity:</strong> SHA-256 hashing for key verification</li>
+                    <li><strong>Token Security:</strong> Time-limited payment tokens (15 minutes expiry)</li>
+                    <li><strong>No Plain Text:</strong> Sensitive data never stored in plain text</li>
+                </ul>
+            </div>
+
+            <div class="security-info">
+                <h3>🛡️ Arsitektur Keamanan</h3>
+                <ul>
+                    <li><strong>Lapisan 1:</strong> Enkripsi HTTPS/TLS dalam transit</li>
+                    <li><strong>Lapisan 2:</strong> Autentikasi JWT untuk akses API</li>
+                    <li><strong>Lapisan 3:</strong> Enkripsi AES untuk data pembayaran sensitif</li>
+                    <li><strong>Lapisan 4:</strong> Kunci privat per-pengguna untuk keamanan personal</li>
+                    <li><strong>Lapisan 5:</strong> Kontrol akses tingkat database</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentToken = localStorage.getItem('token');
+
+        // Periksa autentikasi saat halaman dimuat
+        window.onload = function() {
+            if (!currentToken) {
+                window.location.href = '/login.html';
+                return;
+            }
+            loadUserInfo();
+            loadPaymentHistory();
+        };
+
+        // Muat informasi pengguna
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/users/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    document.getElementById('userInfo').textContent = 
+                        `Selamat datang, ${data.user.username} (${data.user.email})`;
+                } else {
+                    throw new Error('Gagal memuat info pengguna');
+                }
+            } catch (error) {
+                console.error('Error memuat info pengguna:', error);
+                logout();
+            }
+        }
+
+        // Peralihan tab
+        function showTab(tabName) {
+            // Sembunyikan semua tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Tampilkan tab yang dipilih
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Muat data untuk tab tertentu
+            if (tabName === 'history') {
+                loadPaymentHistory();
+            }
+        }
+
+        // Format input nomor kartu
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+            e.target.value = value;
+        });
+
+        // Pengiriman form pembayaran
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            // Konversi string angka ke angka asli
+            data.amount = parseFloat(data.amount);
+            data.expiryMonth = parseInt(data.expiryMonth);
+            data.expiryYear = parseInt(data.expiryYear);
+            
+            try {
+                document.getElementById('loading').style.display = 'block';
+                this.style.display = 'none';
+                
+                const response = await fetch('/payments/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Payment created successfully! Processing...', 'success');
+                    
+                    // Auto-process the payment
+                    setTimeout(async () => {
+                        try {
+                            const processResponse = await fetch('/payments/process', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${currentToken}`
+                                },
+                                body: JSON.stringify({
+                                    paymentId: result.payment.id,
+                                    paymentToken: result.payment.paymentToken
+                                })
+                            });
+                            
+                            const processResult = await processResponse.json();
+                            
+                            if (processResponse.ok) {
+                                showMessage('Pembayaran sedang diproses. Periksa status di riwayat pembayaran.', 'success');
+                                loadPaymentHistory();
+                                this.reset();
+                            } else {
+                                showMessage('Error memproses pembayaran: ' + processResult.error, 'error');
+                            }
+                        } catch (error) {
+                            showMessage('Error memproses pembayaran: ' + error.message, 'error');
+                        }
+                    }, 1000);
+                } else {
+                    showMessage('Error membuat pembayaran: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                this.style.display = 'block';
+            }
+        });
+
+        // Muat riwayat pembayaran
+        async function loadPaymentHistory() {
+            try {
+                const response = await fetch('/payments/history', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayPaymentHistory(data.payments);
+                } else {
+                    throw new Error('Failed to load payment history');
+                }
+            } catch (error) {
+                console.error('Error loading payment history:', error);
+                document.getElementById('paymentHistory').innerHTML = 
+                    '<p style="color: red;">Error loading payment history</p>';
+            }
+        }
+
+        // Display payment history
+        function displayPaymentHistory(payments) {
+            const historyDiv = document.getElementById('paymentHistory');
+            
+            if (payments.length === 0) {
+                historyDiv.innerHTML = '<p style="color: #a0a0b8;">Tidak ada pembayaran ditemukan</p>';
+                return;
+            }
+
+            let html = '';
+            payments.forEach(payment => {
+                const statusClass = `status-${payment.status}`;
+                const date = new Date(payment.createdAt).toLocaleString('id-ID');
+                
+                // Translate status
+                const statusTranslations = {
+                    'pending': 'MENUNGGU',
+                    'processing': 'DIPROSES', 
+                    'completed': 'SELESAI',
+                    'failed': 'GAGAL'
+                };
+                const statusText = statusTranslations[payment.status] || payment.status.toUpperCase();
+                
+                html += `
+                    <div class="payment-item ${statusClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${payment.currency} ${payment.amount.toLocaleString('id-ID')}</strong> - ${payment.paymentMethod}
+                                <br>
+                                <small style="color: #a0a0b8;">ID: ${payment.id}</small>
+                                <br>
+                                <small style="color: #b8b8d1;">${payment.description || 'Tidak ada deskripsi'}</small>
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="status-badge" style="color: #77dbff; font-weight: 600;">${statusText}</span>
+                                <br>
+                                <small style="color: #a0a0b8;">${date}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            historyDiv.innerHTML = html;
+        }
+
+        // Tampilkan pesan
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Fungsi logout
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ class JwtService {
 
   constructor() {
     this.secretKey = process.env.JWT_SECRET || 'your_secret_key';
+    console.log('JwtService JWT_SECRET:', this.secretKey);
   }
 
   signToken(user: User): string {
